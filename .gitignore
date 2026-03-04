@@ -1,0 +1,17 @@
+# ignoring virtual download modul 
+venv/
+env/
+claim-gateway/venv/
+
+# cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# vscode config
+.vscode/
+.idea/
+
+#secrets
+.env
+*.pem
