@@ -1,11 +1,14 @@
 import json
+import os
 from confluent_kafka import Consumer
 
 
+KAFKA_BROKER = os.getenv('KAFKA_BROKER', 'localhost:9092')
+
 conf = {
-   'bootstrap.servers': 'localhost:9092',
+   'bootstrap.servers': KAFKA_BROKER,
    'group.id': 'fraud-detection-group',
-   'auto.offset.reset': 'earliest' 
+   'auto.offset.reset': 'earliest'
 }
 
 consumer = Consumer(conf)

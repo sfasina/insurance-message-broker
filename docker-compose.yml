@@ -11,12 +11,14 @@ services:
       
       # definig kafka listeners  
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092,CONTROLLER://kafka:9093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
       
       # setup KRaft for only my laptop
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -32,3 +34,22 @@ services:
       - kafka
   
 
+  claim-gateway:
+    build: ./claim-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - KAFKA_BROKER=kafka:29092 
+    depends_on:
+      - kafka
+    restart: on-failure
+
+  fraud-detector:
+    build: ./fraud-detector
+    environment:
+      - KAFKA_BROKER=kafka:29092 
+      # ensuring that the output is not buffered, because we want to see the logs in real time
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - kafka
+    restart: on-failure

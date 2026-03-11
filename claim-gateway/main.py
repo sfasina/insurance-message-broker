@@ -1,11 +1,14 @@
 import json
+import os
 from fastapi import FastAPI
 from pydantic import BaseModel
 from confluent_kafka import Producer
 
 app = FastAPI()
 
-kafka_config = {'bootstrap.servers': 'localhost:9092'}
+KAFKA_BROKER = os.getenv('KAFKA_BROKER', 'localhost:9092')
+
+kafka_config = {'bootstrap.servers': KAFKA_BROKER}
 producer = Producer(kafka_config)
 
 class Insurance_claim(BaseModel):
