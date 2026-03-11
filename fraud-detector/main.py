@@ -21,34 +21,37 @@ try:
       msg = consumer.poll(timeout=1.0)
       
       if msg is None:
-            continue
+         continue
             
       if msg.error():
-            print(f"Error reading from Kafka: {msg.error()}")
-            continue
+         print(f"Error reading from Kafka: {msg.error()}")
+         continue
 
       
       claim_data_json = msg.value().decode('utf-8')
-      claim_data = json.loads(claim_data_json)
+      
+      try:
+         claim_data = json.loads(claim_data_json)
+      except json.JSONDecodeError as error:
+         print(f"Invalid JSON: {error}. Skipping.")
+         continue
       
       print("-" * 40)
 
       print("Checking for missing information.")
       
-      if claim_data['claimer_name'] is None:
-         print("Missing claimer name.")
-      elif claim_data['claimer_id_number'] is None:
-         print("Missing claimer ID number.")
-      elif claim_data['contract_number'] is None:
-         print("Missing contract number.")
-      elif claim_data['claim_sum'] is None:
-         print("Missing claim sum.")
+      required_fields = ["claimer_name", "claimer_id_number", "contract_number", "claim_sum"]
+      missing = [field for field in required_fields if claim_data.get(field) is None]
+
+      if missing:
+         print(f"Missing fields: {', '.join(missing)}")
+         continue
 
 
-      print(f"Fraud check for client: {claim_data['claimer_name']}")
-      print(f"Contract number: {claim_data['contract_number']}")
+      print(f"Fraud check for client: {claim_data.get('claimer_name')}")
+      print(f"Contract number: {claim_data.get('contract_number')}")
       
-      if claim_data['claim_sum'] > 50000:
+      if claim_data.get('claim_sum') > 50000:
             print("Claim amount exceeds threshold. Potential fraud detected")
       else:
             print("Claim amount was accepted.")
